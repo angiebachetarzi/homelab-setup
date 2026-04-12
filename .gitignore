@@ -1,0 +1,23 @@
+# Secrets - never commit these
+.env
+
+# Traefik
+services/traefik/config/acme.json
+services/traefik/logs/
+
+# AdGuard
+services/adguard/data/
+
+# Plex
+services/plex/config/
+
+# Arr stack
+services/arr/config/
+
+# General
+*.log
+.DS_Store
+Thumbs.db
+
+# Traefik dynamic configs that contain real IPs (generated from *.example files)
+services/traefik/config/dynamic/plex.yml

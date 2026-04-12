@@ -1,0 +1,27 @@
+################################################################
+# Traefik dynamic config — Plex routing
+#
+# Because Plex runs with network_mode: host, it can't use Docker labels
+# for Traefik routing. This file manually defines the router and service
+# pointing directly to the host IP where Plex listens on port 32400.
+#
+# SETUP: Copy this file to plex.yml and replace YOUR_SERVER_IP with your
+# server's actual IP address. plex.yml is gitignored to avoid leaking your IP.
+#
+#   cp plex.yml.example plex.yml
+#   nano plex.yml  # replace YOUR_SERVER_IP
+################################################################
+
+http:
+  routers:
+    plex:
+      rule: "Host(`plex.home`)"
+      entrypoints:
+        - web
+      service: plex
+
+  services:
+    plex:
+      loadBalancer:
+        servers:
+          - url: "http://YOUR_SERVER_IP:32400"

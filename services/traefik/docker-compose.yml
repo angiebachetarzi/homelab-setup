@@ -1,0 +1,27 @@
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"           # HTTP entrypoint — all .home traffic comes in here
+      - "8080:8080"       # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # lets Traefik watch Docker
+      - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      # Router — catch requests to the dashboard
+      - "traefik.http.routers.dashboard.rule=Host(`${SERVER_IP}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      # Attach the basic auth middleware defined in config/dynamic/auth.yml
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth@file"
+
+networks:
+  proxy:
+    external: true    # created manually once with: docker network create proxy

@@ -1,0 +1,9 @@
+################################################################
+# Basic auth middleware for the Traefik dashboard
+################################################################
+http:
+  middlewares:
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "${TRAEFIK_DASHBOARD_AUTH}"  # format: "user:$$hashed_password"

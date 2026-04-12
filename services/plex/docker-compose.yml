@@ -1,0 +1,36 @@
+################################################################
+# Plex Media Server
+# URL: http://plex.home
+#
+# Runs in host network mode for local device discovery (Plex app on TV, phone, etc.)
+# Traefik routing is handled via config/dynamic/plex.yml in the Traefik service
+#
+# First-time setup:
+#   1. Get a claim token at https://plex.tv/claim (expires in 4 minutes)
+#   2. Add it to your .env file as PLEX_CLAIM
+#   3. Start the container: docker compose up -d
+#   4. Visit http://plex.home or http://192.168.129.12:32400/web to finish setup
+#   5. After setup, the claim token is no longer needed
+#
+# Hardware transcoding:
+#   Enabled via /dev/dri passthrough (Intel HD Graphics 630 on i7-7700HQ)
+#   In Plex settings → Transcoder → enable "Use hardware acceleration when available"
+################################################################
+
+services:
+  plex:
+    image: plexinc/pms-docker:latest
+    container_name: plex
+    restart: unless-stopped
+    env_file: .env
+    network_mode: host      # required for local network discovery
+    devices:
+      - /dev/dri:/dev/dri   # Intel iGPU passthrough for hardware transcoding
+    volumes:
+      - ${CONFIG_PATH}:/config
+      - ${TRANSCODE_PATH}:/transcode
+      - ${MEDIA_PATH}:/media
+    environment:
+      - TZ=${TZ}
+      - PLEX_CLAIM=${PLEX_CLAIM}
+      - ADVERTISE_IP=http://${SERVER_IP}:32400/
