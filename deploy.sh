@@ -138,6 +138,18 @@ else
     WARNINGS+=("traefik/config/dynamic/plex.yml was created — replace YOUR_SERVER_IP with your actual server IP")
 fi
 
+# Traefik auth dynamic config
+auth_example="${SERVICES_DIR}/traefik/config/dynamic/auth.yml.example"
+auth_yml="${SERVICES_DIR}/traefik/config/dynamic/auth.yml"
+
+if [ -f "$auth_yml" ]; then
+    skip "traefik/config/dynamic/auth.yml already exists — not overwriting"
+else
+    cp "$auth_example" "$auth_yml"
+    ok "Created auth.yml from auth.yml.example"
+    WARNINGS+=("traefik/config/dynamic/auth.yml was created — replace the example hash with a real one: echo \$(htpasswd -nB yourpassword) | sed -e s/\\\\\$/\\\\\$\\\\\$/g")
+fi
+
 ################################################################
 # Step 5 — Start services
 ################################################################

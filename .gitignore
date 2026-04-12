@@ -21,3 +21,4 @@ Thumbs.db
 
 # Traefik dynamic configs that contain real IPs (generated from *.example files)
 services/traefik/config/dynamic/plex.yml
+services/traefik/config/dynamic/auth.yml
