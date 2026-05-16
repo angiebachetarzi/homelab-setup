@@ -15,14 +15,14 @@ The homelab is going on the SSD for me but usually it would be on the HDD
 |---------------|------------------------------------------|
 | Traefik       | `http://${SERVER_IP}:8080/dashboard/`    |
 | AdGuard Home  | `http://adguard.home`                    |
-| Plex          | `http://plex.home`                       |
+| Jellyfin          | `http://jellyfin.home`                       |
 | qBittorrent   | `http://qbit.home`                       |
 | Prowlarr      | `http://prowlarr.home`                   |
 | Radarr        | `http://radarr.home`                     |
 | Sonarr        | `http://sonarr.home`                     |
 | Lidarr        | `http://lidarr.home`                     |
 | Bazarr        | `http://bazarr.home`                     |
-| Overseerr     | `http://overseerr.home`                  |
+| Jellyseerr     | `http://jellyseerr.home`                  |
 
 ---
 
@@ -60,7 +60,7 @@ For every service, copy the example env file and fill in your values:
 ```bash
 cp services/traefik/.env.example services/traefik/.env
 cp services/adguard/.env.example services/adguard/.env
-cp services/plex/.env.example services/plex/.env
+cp services/jellyfin/.env.example services/jellyfin/.env
 cp services/arr/.env.example services/arr/.env
 ```
 
@@ -76,8 +76,8 @@ cd services/traefik && docker compose up -d && cd ../..
 # 2. AdGuard (DNS)
 cd services/adguard && docker compose up -d && cd ../..
 
-# 3. Plex
-cd services/plex && docker compose up -d && cd ../..
+# 3. Jellyfin
+cd services/jellyfin && docker compose up -d && cd ../..
 
 # 4. Arr stack
 cd services/arr && docker compose up -d && cd ../..
@@ -106,7 +106,7 @@ docker compose down
 
 ## Media paths
 
-Media is stored under `/data`. If you ever need to change that path
+Media is stored under `/mnt`. If you ever need to change that path
 (e.g. after mounting a new drive), see **[REPATH.md](./REPATH.md)**.
 
 ---
