@@ -6,7 +6,7 @@ services:
     env_file: .env
     ports:
       - "80:80"           # HTTP entrypoint — all .home traffic comes in here
-      - "8080:8080"       # Dashboard
+#      - "8080:8080"       # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro   # lets Traefik watch Docker
       - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
@@ -21,6 +21,8 @@ services:
       - "traefik.http.routers.dashboard.service=api@internal"
       # Attach the basic auth middleware defined in config/dynamic/auth.yml
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth@file"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   proxy:

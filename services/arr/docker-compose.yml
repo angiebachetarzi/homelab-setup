@@ -35,8 +35,9 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
-    restart: unless-stopped
-    env_file: .env
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -45,14 +46,7 @@ services:
     volumes:
       - ${CONFIG_PATH}/qbittorrent:/config
       - ${DOWNLOAD_PATH}:/downloads
-    networks:
-      - proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbit.home`)"
-      - "traefik.http.routers.qbittorrent.entrypoints=web"
-      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
-
+    restart: unless-stopped
   ###############################################################
   # Prowlarr — indexer manager
   # URL: http://prowlarr.home
@@ -60,22 +54,16 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
-    restart: unless-stopped
-    env_file: .env
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
       - ${CONFIG_PATH}/prowlarr:/config
-    networks:
-      - proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.home`)"
-      - "traefik.http.routers.prowlarr.entrypoints=web"
-      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
-
+    restart: unless-stopped
   ###############################################################
   # Radarr — movies automation
   # URL: http://radarr.home
@@ -177,26 +165,83 @@ services:
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
 
   ###############################################################
-  # Overseerr — media request UI
-  # URL: http://overseerr.home
+  # Jellyseerr — media request UI
+  # URL: http://jellyseer.home
   ###############################################################
-  overseerr:
-    image: sctx/overseerr:latest
-    container_name: overseerr
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest # The Jellyfin-optimized fork
+    container_name: jellyseerr
     restart: unless-stopped
     env_file: .env
     environment:
       - TZ=${TZ}
       - LOG_LEVEL=debug
     volumes:
-      - ${CONFIG_PATH}/overseerr:/app/config
+      - ${CONFIG_PATH}/jellyseerr:/app/config
+    ports:
+      - "5055:5055"
     networks:
       - proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.overseerr.rule=Host(`overseerr.home`)"
-      - "traefik.http.routers.overseerr.entrypoints=web"
-      - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+      - "traefik.http.routers.jellyseerr.rule=Host(`requests.home`)" # You can use jellyseerr.home if you prefer
+      - "traefik.http.routers.jellyseerr.entrypoints=web"
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
+
+  ###############################################################
+  # Flaresolverr — anti-captcha proxy for indexers that use Cloudflare
+  # URL: http://flaresolverr.home
+  ###############################################################
+  flaresolverr:
+   image: ghcr.io/flaresolverr/flaresolverr:latest
+   container_name: flaresolverr
+   network_mode: "service:gluetun"
+   depends_on:
+     - gluetun
+   environment:
+     - LOG_LEVEL=info
+     - TZ=${TZ}
+   restart: unless-stopped
+
+  ###############################################################
+  # Gluetun — VPN client for secure torrenting
+  # URL: http://gluetun.home:8080 (qBittorrent Web
+  # First run: set your VPN credentials in the .env file
+  ###############################################################
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=mOjRmz0iAStEwlb/J7faCP5ZexnEwNjYnG56G1hF/Hc=
+      - SERVER_COUNTRIES=Canada  # Or whatever country you chose
+      - TZ=${TZ}
+      - DNS_ADDRESS=1.1.1.1
+      - DOT=off
+    ports:
+      - "8080:8080" # qBittorrent Web UI
+      - "9117:9117" # Jackett (if used)
+      - "9696:9696" # Prowlarr
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      # qBittorrent Routing
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbit.home`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=web"
+      - "traefik.http.routers.qbittorrent.service=qbittorrent-svc"
+      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8080"
+      # Prowlarr Routing (PUT THE NEW LABELS HERE)
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.home`)"
+      - "traefik.http.routers.prowlarr.entrypoints=web"
+      - "traefik.http.routers.prowlarr.service=prowlarr-svc"
+      - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"
+    restart: unless-stopped
 
 networks:
   proxy:
