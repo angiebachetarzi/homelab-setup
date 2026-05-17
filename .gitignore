@@ -24,3 +24,7 @@ services/traefik/config/dynamic/plex.yml
 services/traefik/config/dynamic/auth.yml
 
 services/adguard/config/work/data/
+
+services/arr/config
+services/jellyfin/cache
+services/jellyfin/config

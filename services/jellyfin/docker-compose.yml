@@ -1,22 +1,21 @@
-services:       # <--- This must be the very first line
-  jellyfin:     # <--- Indented 2 spaces
+services:
+  jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
+    user: 1000:1000
     restart: unless-stopped
-    # ... all other lines indented to match
+    volumes:
+      - /opt/homelab-setup/services/jellyfin/config:/config
+      - /opt/homelab-setup/services/jellyfin/cache:/cache
+      - /mnt:/data
     networks:
       - proxy
-    volumes:
-      - ${CONFIG_PATH}/jellyfin:/config
-      - ${MEDIA_PATH}:/media
-    devices:
-      - /dev/dri:/dev/dri
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.home`)"
       - "traefik.http.routers.jellyfin.entrypoints=web"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
 
-networks:       # <--- Back to the far left (no indentation)
+networks:
   proxy:
     external: true
