@@ -16,17 +16,17 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=${TZ}
+      - TZ=Europe/Brussels
       - WEBUI_PORT=8080
     volumes:
       - /opt/homelab-setup/services/arr/config/qbittorrent:/config
       - /mnt:/data
-    ports:
-      - "8080:8080"
-      - "6881:6881"
-      - "6881:6881/udp"
     networks:
       - proxy
+      - default
+    ports:
+      - "6881:6881"
+      - "6881:6881/udp"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qbittorrent.rule=Host(`qbit.home`)"
